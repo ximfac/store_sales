@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from sklearn.feature_selection import mutual_info_regression
+import numpy as np
 
 # annotations: https://stackoverflow.com/a/49238256/5769929
 def seasonal_plot(X, y, period, freq, ax=None):
@@ -173,3 +175,17 @@ def make_mas(y, steps):
         {f'MA_{i}': y_lag.rolling(i).mean()
          for i in steps},
         axis=1)
+
+def make_mi_scores(X, y, discrete_features):
+    mi_scores = mutual_info_regression(X, y, discrete_features=discrete_features)
+    mi_scores = pd.Series(mi_scores, name="MI Scores", index=X.columns)
+    mi_scores = mi_scores.sort_values(ascending=False)
+    return mi_scores
+
+def plot_mi_scores(scores):
+    scores = scores.sort_values(ascending=True)
+    width = np.arange(len(scores))
+    ticks = list(scores.index)
+    plt.barh(width, scores)
+    plt.yticks(width, ticks)
+    plt.title("Mutual Information Scores")
