@@ -133,11 +133,11 @@ def plot_lags(x, y=None, lags=6, nrows=1, lagplot_kwargs={}, **kwargs):
     fig.tight_layout(w_pad=0.1, h_pad=0.1)
     return fig
 
-def make_lags(ts, lags, lead_time=1):
+def make_lags(ts, lags, lead_time=1, step=1):
     return pd.concat(
         {
             f'y_lag_{i}': ts.shift(i)
-            for i in range(lead_time, lags + lead_time)
+            for i in range(lead_time, lags + lead_time, step)
         },
         axis=1)
 
@@ -169,11 +169,20 @@ def plot_multistep(y, every=1, ax=None, palette_kwargs=None):
         preds.plot(ax=ax)
     return ax
 
-def make_mas(y, steps):
+def make_mas(y, steps, shift=1, center=False, min_periods=None):
+    y_lag = y.shift(shift)
+    return pd.concat(
+        {f'MA_{i}': y_lag.rolling(i,
+                                  center=center,
+                                     min_periods=min_periods).mean()
+         for i in steps},
+        axis=1)
+
+def make_emas(y, alphas):
     y_lag = y.shift(1)
     return pd.concat(
-        {f'MA_{i}': y_lag.rolling(i).mean()
-         for i in steps},
+        {f'EMA_{i}': y_lag.ewm(alpha = i, adjust=False).mean()
+         for i in alphas},
         axis=1)
 
 def make_mi_scores(X, y, discrete_features):
